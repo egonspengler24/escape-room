@@ -53,6 +53,22 @@
       border:1px solid #243252; border-radius:999px; padding:6px 10px;
     }
 
+    .step-pane{
+      display:flex; gap:14px; align-items:flex-start;
+      margin-top:10px; justify-content:flex-start;
+    }
+    .step-img{
+      width:140px; max-width:28vw; height:auto; 
+      border-radius:10px; border:1px solid #243252; 
+      background:#0e1527; object-fit:cover;
+      flex:0 0 auto;
+    }
+    .step-text{ flex:1; min-width:0; }
+    @media (max-width:720px){
+      .step-pane{ flex-direction:column; align-items:center; text-align:center; }
+      .step-text{ width:100%; }
+    }
+
     .progress{
       margin:22px 0 14px; display:flex; align-items:center; gap:10px; justify-content:space-between;
     }
@@ -171,8 +187,13 @@
         <div id="dots" style="display:flex; gap:8px;"></div>
       </div>
 
-      <div id="stepTitle" class="center" style="color:#a9b6d4; margin-top:2px;"></div>
-      <div id="stepDescription" class="center" style="color:#94a3b8; margin-top:6px; font-size:14px;"></div>
+      <div class="step-pane" aria-live="polite">
+        <img id="stepImage" class="step-img hidden" alt="" />
+        <div class="step-text">
+          <div id="stepTitle" style="color:#a9b6d4; font-weight:600; margin-top:2px;"></div>
+          <div id="stepDescription" style="color:#94a3b8; margin-top:6px; font-size:14px;"></div>
+        </div>
+      </div>
 
       <div class="input-row">
         <input id="codeInput" class="code-input" placeholder="Enter code…" autocomplete="off" />
@@ -364,6 +385,7 @@
       dots: $('#dots'),
       stepTitle: $('#stepTitle'),
       stepDescription: $('#stepDescription'),
+      stepImage: $('#stepImage'),
       appTitle: $('#appTitle'),
       roomMeta: $('#roomMeta'),
       startBtn: $('#startBtn'),
@@ -382,9 +404,28 @@
       els.roomMeta.textContent = `Team play • ${cfg.steps.length} steps`;
     }
     setMeta();
+ 
+    // Markdown to HTML
+  function mdToHtml(md){
+  if(!md) return '';
+  // Escape HTML first for safety (we will then allow links via markdown)
+  const escape = s => s
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+  let h = escape(md);
+
+  // Basic markdown: headings (##, #) → strong/bigger (optional)
+  h = h.replace(/^###\s?(.*)$/gm, '<strong>$1</strong>');
+  h = h.replace(/^##\s?(.*)$/gm, '<strong>$1</strong>');
+  h = h.replace(/^#\s?(.*)$/gm, '<strong>$1</strong>');
+
+  // Bold **text**
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic *text* or _text_
+  h = h.replace(/(\*|_)(.+?)
+    
     // Build dots
-   function renderDots(){
+  function renderDots(){
   els.dots.innerHTML = '';
   for(let i=0;i<cfg.steps.length;i++){
     const d = document.createElement('div');
@@ -397,14 +438,36 @@
   const pct = (state.currentStep / cfg.steps.length) * 100;
   els.barFill.style.width = `${pct}%`;
 
-  // Update step title
-  const step = cfg.steps[state.currentStep];
-  const title = step?.title || '';
-  els.stepTitle.textContent = title ? `Current: ${title}` : '';
+// Update step title, description, and image
+const step = cfg.steps[state.currentStep] || {};
+const title = step.title || '';
+if (els.stepTitle) els.stepTitle.textContent = title ? `Current: ${title}` : '';
 
-  // NEW — update step description
-  const desc = step?.description || '';
-  els.stepDescription.textContent = desc;
+// Choose the best available description
+let html = '';
+if (step.descriptionHtml) {
+  html = step.descriptionHtml; // trusting author content
+} else if (step.descriptionMd) {
+  html = mdToHtml(step.descriptionMd);
+} else if (step.description) {
+  html = `<p>${step.description}</p>`;
+} else {
+  html = '';
+}
+
+// Render description (rich HTML)
+if (els.stepDescription) els.stepDescription.innerHTML = html;
+
+// Handle optional image
+if (step.image) {
+  els.stepImage.src = step.image;
+  els.stepImage.alt = step.imageAlt || title || 'Step image';
+  els.stepImage.classList.remove('hidden');
+} else {
+  els.stepImage.classList.add('hidden');
+  els.stepImage.removeAttribute('src');
+  els.stepImage.alt = '';
+}
 }
 
     // Local storage
