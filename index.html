@@ -417,23 +417,52 @@
     setMeta();
  
     // Markdown to HTML
-  function mdToHtml(md){
+function mdToHtml(md){
   if(!md) return '';
-  // Escape HTML first for safety (we will then allow links via markdown)
+
+  // 1) Escape HTML first to avoid accidental tag injection
   const escape = s => s
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
 
-  let h = escape(md);
+  let h = escape(md).replace(/\r\n/g, '\n').trim();
 
-  // Basic markdown: headings (##, #) → strong/bigger (optional)
-  h = h.replace(/^###\s?(.*)$/gm, '<strong>$1</strong>');
-  h = h.replace(/^##\s?(.*)$/gm, '<strong>$1</strong>');
-  h = h.replace(/^#\s?(.*)$/gm, '<strong>$1</strong>');
+  // 2) Protect inline code by swapping to placeholders first
+  const codeSpans = [];
+  h = h.replace(/`([^`]+)`/g, (_, code) => {
+    const i = codeSpans.length;
+    codeSpans.push(`<code>${code}</code>`);
+    return `§§CODE${i}§§`;
+  });
 
-  // Bold **text**
+  // 3) Headings (#, ##, ###) → bold line (lightweight emphasis)
+  h = h.replace(/^###\s?(.+)$/gm, '<strong>$1</strong>');
+  h = h.replace(/^##\s?(.+)$/gm, '<strong>$1</strong>');
+  h = h.replace(/^#\s?(.+)$/gm, '<strong>$1</strong>');
+
+  // 4) Links: [text](https://example.com)
+  h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  // 5) Bold: **text**
   h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // Italic *text* or _text_
-  h = h.replace(/(\*|_)(.+?)
+
+  // 6) Italic: *text* or _text_ (run after bold to avoid overlap)
+  h = h.replace(/(\*|_)([^*_]+?)\1/g, '<em>$2</em>');
+
+  // 7) Lists: lines starting with - or * → <li>…</li>, then group into <ul>
+  h = h.replace(/^(?:-|\*)\s+(.+)$/gm, '<li>$1</li>');
+  h = h.replace(/(?:\s*<li>[\s\S]*?<\/li>)+/g, m => `<ul>${m.trim()}</ul>`);
+
+  // 8) Paragraphs + line breaks
+  const parts = h.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`);
+  h = parts.join('');
+
+  // 9) Restore inline code placeholders
+  h = h.replace(/§§CODE(\d+)§§/g, (_, i) => codeSpans[Number(i)]);
+
+  return h;
+}
     
     // Build dots
   function renderDots(){
