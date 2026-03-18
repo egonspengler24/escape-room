@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escape Room Timer</title>
+  <style>
+    :root{
+      --bg:#0b1221;
+      --panel:#121a2b;
+      --accent:#5eead4;
+      --warn:#ef4444;
+      --ok:#22c55e;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --progress-bg:#1f2937;
+      --progress-fill:#60a5fa;
+      --ring:#0ea5e9;
+    }
+    * { box-sizing: border-box; }
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 50% -100px, #1b2542 0%, var(--bg) 40%, #070b16 100%);
+      color: var(--text);
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+    }
+    .wrap{ width:min(1100px, 94vw); margin:4vh auto; }
+    header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .brand h1{ font-size: clamp(20px, 3vw, 28px); margin:0; font-weight:700; letter-spacing:.3px; }
+    .room-meta{ color:var(--muted); font-size:14px; }
+    .gear-btn{
+      background:transparent; border:1px solid #2b3552; color:var(--text); border-radius:10px;
+      padding:8px 10px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:6px;
+    }
+    .gear-btn:hover{ border-color:#3b476d; box-shadow:0 0 0 2px rgba(99,102,241,.15) inset; }
+
+    .panel{ background:linear-gradient(180deg, rgba(24,33,56,.8), rgba(13,19,34,.85)); border:1px solid #1e2a46; border-radius:18px; padding:20px; }
+    .timer{
+      display:flex; align-items:center; justify-content:center; gap:18px;
+      font-variant-numeric: tabular-nums;
+      user-select:none;
+    }
+    .clock{
+      font-size: clamp(48px, 12vw, 140px);
+      font-weight:800;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(94,234,212,.2);
+    }
+    .clock.urgent{ color:#fca5a5; text-shadow:0 0 20px rgba(239,68,68,.3); }
+    .status-chip{
+      font-size:12px; color:var(--muted);
+      border:1px solid #243252; border-radius:999px; padding:6px 10px;
+    }
+
+    .progress{
+      margin:22px 0 14px; display:flex; align-items:center; gap:10px; justify-content:space-between;
+    }
+    .dot{
+      width:24px; height:24px; border-radius:999px; background:var(--progress-bg);
+      border:1px solid #2a3758; display:grid; place-items:center; color:#9fb3d0; font-size:12px; font-weight:700;
+      transition:.25s ease;
+    }
+    .dot.active{ border-color:var(--ring); box-shadow:0 0 0 4px rgba(14,165,233,.12); }
+    .dot.done{ background:linear-gradient(180deg, #3b82f6, #2563eb); color:white; border-color:#1d4ed8; }
+    .bar{ height:6px; flex:1; border-radius:999px; background:var(--progress-bg); overflow:hidden; border:1px solid #263149; }
+    .bar-fill{ height:100%; width:0%; background:linear-gradient(90deg, #60a5fa, #22d3ee); transition:width .4s ease; }
+
+    .input-row{
+      display:flex; gap:12px; margin-top:16px;
+      flex-wrap:wrap;
+    }
+    .code-input{
+      flex:1; min-width:220px; font-size:18px; padding:14px 15px; border-radius:12px; border:1px solid #293756; color:var(--text);
+      background:#0f1a2e;
+      outline:none;
+    }
+    .code-input:focus{ border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+    .btn{
+      background:linear-gradient(180deg, #10b981, #059669); color:white;
+      border:1px solid #047857; padding:14px 18px; border-radius:12px; cursor:pointer; font-weight:700; letter-spacing:.2px;
+    }
+    .btn:hover{ filter:brightness(1.05); }
+    .btn.secondary{ background:transparent; border-color:#334155; color:#d1d5db; }
+    .msg{ min-height:26px; margin-top:8px; color:var(--muted); }
+    .msg.ok{ color:var(--ok); }
+    .msg.err{ color:var(--warn); }
+
+    .center{ text-align:center; }
+    .hidden{ display:none !important; }
+
+    /* Start screen */
+    .start-grid{ display:grid; gap:14px; grid-template-columns: 1fr; }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .field label{ color:#aab4cc; font-size:14px; }
+    .field input{
+      background:#0f1a2e; border:1px solid #293756; border-radius:12px; padding:12px 14px; color:#e8edf8; outline:none;
+    }
+    .field input:focus{ border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+
+    /* Modal (admin) */
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center; z-index:20;
+    }
+    .modal{ width:min(520px, 92vw); background:#0f1627; border:1px solid #2a3657; border-radius:14px; padding:16px; }
+    .modal h3{ margin:6px 0 12px; }
+    .modal .row{ display:flex; gap:10px; margin:8px 0; flex-wrap:wrap; }
+    .modal .row > * { flex:1; min-width:180px; }
+    .modal .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
+
+    /* Celebrate */
+    canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:15; }
+
+    @media (max-width:720px){
+      .clock{ letter-spacing:1px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti" class="hidden"></canvas>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.77 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#60a5fa" stroke-width="1.2"/>
+        </svg>
+        <div>
+          <h1 id="appTitle">Apprentice Escape Room</h1>
+          <div class="room-meta" id="roomMeta">Team play • 10 steps</div>
+        </div>
+      </div>
+      <button class="gear-btn" id="adminBtn" aria-label="Admin controls">
+        <span>⚙️</span> Admin
+      </button>
+    </header>
+
+    <!-- START SCREEN -->
+    <section id="startPanel" class="panel" aria-label="Start">
+      <div class="start-grid">
+        <div class="field">
+          <label for="teamName">Team name (optional)</label>
+          <input id="teamName" placeholder="e.g., Team Lightning" />
+        </div>
+        <div class="field">
+          <label for="duration">Duration (minutes)</label>
+          <input id="duration" type="number" min="5" max="120" value="40" />
+        </div>
+        <div class="field">
+          <label for="eventKey">Event key (storage namespace)</label>
+          <input id="eventKey" placeholder="e.g., enwl-apprentice-2026" />
+        </div>
+        <div>
+          <button class="btn" id="startBtn">Start Game</button>
+          <button class="btn secondary" id="loadBtn">Resume Last Session</button>
+        </div>
+        <div class="msg" id="startMsg">Tip: The answer box supports Enter key. Codes are case-insensitive and ignore spaces/hyphens.</div>
+      </div>
+    </section>
+
+    <!-- MAIN GAME -->
+    <section id="gamePanel" class="panel hidden" aria-live="polite" aria-label="Game">
+      <div class="timer">
+        <div class="status-chip" id="chip">In progress</div>
+        <div class="clock" id="clock">40:00</div>
+      </div>
+
+      <div class="progress" aria-label="Progress">
+        <div class="bar" aria-hidden="true"><div class="bar-fill" id="barFill"></div></div>
+        <div id="dots" style="display:flex; gap:8px;"></div>
+      </div>
+
+      <div id="stepTitle" class="center" style="color:#a9b6d4; margin-top:2px;"></div>
+
+      <div class="input-row">
+        <input id="codeInput" class="code-input" placeholder="Enter code…" autocomplete="off" />
+        <button id="submitBtn" class="btn">Submit</button>
+      </div>
+      <div class="msg" id="feedback" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- FINISH -->
+    <section id="finishPanel" class="panel hidden center" aria-label="Finished">
+      <h2>🎉 Success!</h2>
+      <p id="finishSummary">You finished with time to spare.</p>
+      <div style="margin-top:14px;">
+        <button class="btn" id="playAgainBtn">Reset</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Inline CONFIG as JSON -->
+  <script type="application/json" id="game-config">
+  {
+    "title": "Apprentice Escape Room",
+    "adminPin": "admin",
+    "defaultMinutes": 40,
+    "eventKeyDefault": "escape-room-demo",
+    "showStepTitlesWhenDone": true,
+    "rateLimit": { "limit": 3, "cooldownSec": 3 },
+    "steps": [
+      { "title": "Step 1", "codeHashes": ["0b3a8e6318df030d9c6c0e0a4d9fd771c2b0e3e7f4a186f0b0e6d3e1b84a4b45"] },
+      { "title": "Step 2", "codeHashes": ["5a8a7b3f5d0c0901b7a0b2d090c4d5e5fb7f65800c76d9aa9d2ea7f96333b2ce"] },
+      { "title": "Step 3", "codeHashes": ["f1e2d3c4b5a697887766554433221100ffeeddccbbaa99887766554433221100"] },
+      { "title": "Step 4", "codeHashes": ["f6c3a25f9b246852a1f3d8b2c0e4d5a6c7b8a9e0d1c2b3a4f5e6d7c8b9a0f1e2"] },
+      { "title": "Step 5", "codeHashes": ["2c26b46b68ffc68ff99b453c1d3041341342d7065f49f8e0f1e6d4c3b2a1f0ef"] },
+      { "title": "Step 6", "codeHashes": ["4f7b3b9c5a1d2e3f4a5b6c7d8e9f00112233445566778899aabbccddeeff0011"] },
+      { "title": "Step 7", "codeHashes": ["d4735e3a265e16eee03f59718b9b5d03d6f91f6b1c1d1e1e1f1f1f1f1f1f1f1f"] },
+      { "title": "Step 8", "codeHashes": ["3f786850e387550fdab836ed7e6dc881de23001b"] },
+      { "title": "Step 9", "codeHashes": ["7c222fb2927d828af22f592134e8932480637c0d"] },
+      { "title": "Final Step", "codeHashes": ["2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"] }
+    ]
+  }
+  </script>
+
+  <script>
+    // =============== Utilities ===============
+    const $ = sel => document.querySelector(sel);
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const canonicalize = s => (s||"").toLowerCase().replace(/[\s\-_\.\:]/g,'').trim();
+
+    async function sha256Hex(str) {
+      const data = new TextEncoder().encode(canonicalize(str));
+      const digest = await crypto.subtle.digest('SHA-256', data);
+      const bytes = new Uint8Array(digest);
+      return [...bytes].map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    // Minor compatibility: accept legacy short hashes in sample
+    function matchHash(inputHash, codeHashes) {
+      // Accept if equal to any full hash OR matches any provided short hash (demo flexibility)
+      return codeHashes.some(h => h.length === 64 ? h === inputHash : inputHash.startsWith(h));
+    }
+
+    // =============== Simple Synth Sounds ===============
+    class Beeper {
+      constructor(){
+        this.ctx = null;
+      }
+      ensureCtx(){
+        if(!this.ctx){
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+      async ok(){
+        this.ensureCtx();
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type='triangle'; o.frequency.setValueAtTime(440, t);
+        o.frequency.exponentialRampToValueAtTime(880, t+0.18);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.2, t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t+0.22);
+        o.connect(g).connect(this.ctx.destination);
+        o.start(); o.stop(t+0.24);
+      }
+      async err(){
+        this.ensureCtx();
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type='square'; o.frequency.setValueAtTime(120, t);
+        o.frequency.setValueAtTime(90, t+0.15);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.25, t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t+0.25);
+        o.connect(g).connect(this.ctx.destination);
+        o.start(); o.stop(t+0.28);
+      }
+    }
+    const beep = new Beeper();
+
+    // =============== Confetti (tiny) ===============
+    const confettiCanvas = $('#confetti');
+    const cctx = confettiCanvas.getContext('2d');
+    let confettiActive=false, confettiParts=[];
+    function resizeCanvas(){
+      confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight;
+    }
+    addEventListener('resize', resizeCanvas);
+    function makeConfetti(n=160){
+      resizeCanvas();
+      confettiParts = Array.from({length:n}, ()=>({
+        x: Math.random()*confettiCanvas.width,
+        y: -10 - Math.random()*confettiCanvas.height,
+        r: 4+Math.random()*6,
+        c: `hsl(${Math.random()*360},85%,62%)`,
+        vx: -1+Math.random()*2,
+        vy: 2+Math.random()*3,
+        a: Math.random()*Math.PI*2,
+        va: -0.1+Math.random()*0.2
+      }));
+    }
+    function drawConfetti(){
+      cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+      for(const p of confettiParts){
+        p.x += p.vx; p.y += p.vy; p.a += p.va;
+        cctx.save();
+        cctx.translate(p.x, p.y);
+        cctx.rotate(p.a);
+        cctx.fillStyle = p.c;
+        cctx.fillRect(-p.r/2, -p.r/2, p.r, p.r);
+        cctx.restore();
+        if(p.y > confettiCanvas.height+20) { p.y = -20; }
+      }
+    }
+    function celebrate(){
+      confettiCanvas.classList.remove('hidden');
+      confettiActive=true; makeConfetti();
+      const loop = ()=>{
+        if(!confettiActive) return;
+        drawConfetti();
+        requestAnimationFrame(loop);
+      };
+      loop();
+      setTimeout(()=>{ confettiActive=false; confettiCanvas.classList.add('hidden'); }, 5500);
+    }
+
+    // =============== State & Config ===============
+    const cfg = JSON.parse(document.getElementById('game-config').textContent);
+
+    const state = {
+      eventKey: cfg.eventKeyDefault,
+      teamName: '',
+      minutes: cfg.defaultMinutes,
+      startedAt: null,
+      deadline: null,
+      remaining: null,
+      currentStep: 0,
+      completed: [],
+      lockedUntil: 0,
+      wrongStreak: 0
+    };
+
+    const els = {
+      startPanel: $('#startPanel'),
+      gamePanel: $('#gamePanel'),
+      finishPanel: $('#finishPanel'),
+      msg: $('#feedback'),
+      clock: $('#clock'),
+      chip: $('#chip'),
+      code: $('#codeInput'),
+      submit: $('#submitBtn'),
+      barFill: $('#barFill'),
+      dots: $('#dots'),
+      stepTitle: $('#stepTitle'),
+      appTitle: $('#appTitle'),
+      roomMeta: $('#roomMeta'),
+      startBtn: $('#startBtn'),
+      loadBtn: $('#loadBtn'),
+      adminBtn: $('#adminBtn'),
+      startMsg: $('#startMsg'),
+      duration: $('#duration'),
+      teamName: $('#teamName'),
+      eventKey: $('#eventKey'),
+      finishSummary: $('#finishSummary'),
+      playAgainBtn: $('#playAgainBtn')
+    };
+
+    els.appTitle.textContent = cfg.title;
+    function setMeta(){
+      els.roomMeta.textContent = `Team play • ${cfg.steps.length} steps`;
+    }
+    setMeta();
+
+    // Build dots
+    function renderDots(){
+      els.dots.innerHTML = '';
+      for(let i=0;i<cfg.steps.length;i++){
+        const d = document.createElement('div');
+        d.className = 'dot';
+        d.textContent = (i+1);
+        if(i < state.currentStep) d.classList.add('done');
+        else if(i === state.currentStep) d.classList.add('active');
+        els.dots.appendChild(d);
+      }
+      const pct = (state.currentStep / cfg.steps.length) * 100;
+      els.barFill.style.width = `${pct}%`;
+      const title = cfg.steps[state.currentStep]?.title || '';
+      els.stepTitle.textContent = title ? `Current: ${title}` : '';
+    }
+
+    // Local storage
+    function storageKey(){ return `escape:${state.eventKey}`; }
+    function save(){
+      localStorage.setItem(storageKey(), JSON.stringify(state));
+    }
+    function load(){
+      const raw = localStorage.getItem(storageKey());
+      if(!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+    function clearSave(){
+      localStorage.removeItem(storageKey());
+    }
+
+    // Timer
+    let tickHandle=null;
+    function startTimer(){
+      if(tickHandle) clearInterval(tickHandle);
+      const tick = ()=>{
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((state.deadline - now)/1000));
+        state.remaining = remaining;
+        if(remaining <= 0){
+          els.clock.textContent = "00:00";
+          els.clock.classList.add('urgent');
+          els.chip.textContent = "Time's up";
+          els.code.disabled = true; els.submit.disabled = true;
+          save();
+          clearInterval(tickHandle);
+          return;
+        }
+        const m = Math.floor(remaining/60).toString().padStart(2,'0');
+        const s = (remaining%60).toString().padStart(2,'0');
+        els.clock.textContent = `${m}:${s}`;
+        els.clock.classList.toggle('urgent', remaining <= 60);
+      };
+      tick();
+      tickHandle = setInterval(tick, 250);
+    }
+
+    // Rate limiting for wrong attempts
+    async function cooldownIfNeeded(){
+      const limit = cfg.rateLimit?.limit ?? 3;
+      const cool = cfg.rateLimit?.cooldownSec ?? 3;
+      if(state.wrongStreak >= limit){
+        const until = Date.now() + cool*1000;
+        state.lockedUntil = until; save();
+        els.msg.className = 'msg err';
+        els.msg.textContent = `Too many attempts. Pausing for ${cool}s…`;
+        els.code.disabled = true; els.submit.disabled = true;
+        await sleep(cool*1000);
+        state.wrongStreak = 0; state.lockedUntil = 0; save();
+        els.code.disabled = false; els.submit.disabled = false; els.msg.textContent = '';
+      }
+    }
+
+    async function handleSubmit(){
+      // Unlock audio context on first interaction
+      try { await beep.ok(); } catch {}
+      const now = Date.now();
+      if(state.lockedUntil && now < state.lockedUntil){
+        els.msg.className = 'msg err';
+        const left = Math.ceil((state.lockedUntil - now)/1000);
+        els.msg.textContent = `Please wait ${left}s before trying again.`;
+        return;
+      }
+      const value = els.code.value;
+      if(!value){ return; }
+      const step = cfg.steps[state.currentStep];
+      if(!step){ return; }
+      const inputHash = await sha256Hex(value);
+
+      if(matchHash(inputHash, step.codeHashes || [])){
+        state.currentStep += 1;
+        state.completed.push(Date.now());
+        state.wrongStreak = 0;
+        save();
+        els.msg.className = 'msg ok';
+        els.msg.textContent = 'Correct! Advancing…';
+        els.code.value = '';
+        renderDots();
+        await beep.ok();
+        if(state.currentStep >= cfg.steps.length){
+          // Finished
+          finishGame();
+        }
+      } else {
+        state.wrongStreak += 1;
+        save();
+        els.msg.className = 'msg err';
+        els.msg.textContent = 'Incorrect code. Try again.';
+        shake(els.code);
+        await beep.err();
+        await cooldownIfNeeded();
+      }
+    }
+
+    function shake(el){
+      el.style.transition='transform .08s ease';
+      el.style.transform='translateX(-6px)';
+      setTimeout(()=>{ el.style.transform='translateX(6px)'; }, 80);
+      setTimeout(()=>{ el.style.transform='translateX(0)'; }, 160);
+    }
+
+    function show(el){ el.classList.remove('hidden'); }
+    function hide(el){ el.classList.add('hidden'); }
+
+    function startGame(){
+      // Init state
+      state.teamName = els.teamName.value.trim();
+      state.minutes = Math.max(5, Math.min(120, parseInt(els.duration.value||cfg.defaultMinutes,10)));
+      state.eventKey = (els.eventKey.value.trim() || cfg.eventKeyDefault);
+      state.startedAt = Date.now();
+      state.deadline = state.startedAt + state.minutes*60*1000;
+      state.currentStep = 0;
+      state.completed = [];
+      state.wrongStreak = 0;
+      state.lockedUntil = 0;
+      save();
+
+      // UI
+      hide(els.startPanel);
+      show(els.gamePanel);
+      hide(els.finishPanel);
+      els.msg.textContent='';
+      els.chip.textContent = 'In progress';
+      renderDots();
+      startTimer();
+      els.code.focus();
+    }
+
+    function resumeIfAvailable(){
+      const s = load();
+      if(!s){ els.startMsg.textContent = 'No saved session found for this event key.'; return; }
+      Object.assign(state, s);
+      // UI
+      hide(els.startPanel);
+      show(els.gamePanel);
+      hide(els.finishPanel);
+      renderDots();
+      startTimer();
+      els.code.disabled = state.remaining === 0;
+      els.submit.disabled = state.remaining === 0;
+      els.msg.textContent = '';
+      els.code.focus();
+    }
+
+    function finishGame(){
+      hide(els.gamePanel);
+      show(els.finishPanel);
+      const remaining = Math.max(0, state.remaining || Math.floor((state.deadline - Date.now())/1000));
+      const m = Math.floor(remaining/60); const s = remaining%60;
+      const team = state.teamName ? `Team ${state.teamName} ` : 'You ';
+      els.finishSummary.textContent = `${team}completed all ${cfg.steps.length} steps with ${m}m ${s}s remaining.`;
+      celebrate();
+    }
+
+    function hardReset(){
+      clearSave();
+      // Reset fields to defaults
+      els.duration.value = cfg.defaultMinutes;
+      els.teamName.value = '';
+      els.eventKey.value = cfg.eventKeyDefault;
+      hide(els.gamePanel); hide(els.finishPanel); show(els.startPanel);
+      els.startMsg.textContent = 'Session reset.';
+    }
+
+    // =============== Admin Modal ===============
+    function openAdmin(){
+      const bd = document.createElement('div');
+      bd.className='modal-backdrop';
+      bd.innerHTML = `
+        <div class="modal" role="dialog" aria-modal="true" aria-label="Admin">
+          <h3>Admin Controls</h3>
+          <div class="row">
+            <div class="field">
+              <label>Enter PIN</label>
+              <input id="adminPin" type="password" placeholder="PIN" />
+            </div>
+          </div>
+          <div id="adminPanel" class="hidden">
+            <div class="row">
+              <div class="field">
+                <label>Adjust time (± seconds)</label>
+                <input id="timeDelta" type="number" value="60" />
+              </div>
+              <div class="field">
+                <label>Skip to step (1..${cfg.steps.length})</label>
+                <input id="skipTo" type="number" min="1" max="${cfg.steps.length}" />
+              </div>
+            </div>
+            <div class="row">
+              <button class="btn" id="addTimeBtn">+ Time</button>
+              <button class="btn secondary" id="subTimeBtn">− Time</button>
+              <button class="btn secondary" id="skipBtn">Skip</button>
+              <button class="btn secondary" id="endBtn">End Now</button>
+            </div>
+            <div class="row">
+              <button class="btn secondary" id="kioskBtn">Toggle Kiosk UI</button>
+              <button class="btn secondary" id="resetBtn">Full Reset</button>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn secondary" id="closeAdmin">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(bd);
+      const pin = bd.querySelector('#adminPin');
+      const panel = bd.querySelector('#adminPanel');
+
+      function unlock(){
+        if(pin.value === cfg.adminPin){
+          panel.classList.remove('hidden');
+          pin.disabled = true;
+        } else {
+          shake(pin);
+        }
+      }
+
+      pin.addEventListener('keydown', e => { if(e.key==='Enter') unlock(); });
+      pin.focus();
+
+      bd.addEventListener('click', e=>{
+        if(e.target.id==='closeAdmin') document.body.removeChild(bd);
+        if(e.target.id==='addTimeBtn'){
+          const d = parseInt(bd.querySelector('#timeDelta').value||'0',10);
+          state.deadline += d*1000; save(); startTimer();
+        }
+        if(e.target.id==='subTimeBtn'){
+          const d = parseInt(bd.querySelector('#timeDelta').value||'0',10);
+          state.deadline -= d*1000; save(); startTimer();
+        }
+        if(e.target.id==='skipBtn'){
+          const to = Math.max(1, Math.min(cfg.steps.length, parseInt(bd.querySelector('#skipTo').value||'1',10)));
+          state.currentStep = to-1; save(); renderDots();
+        }
+        if(e.target.id==='endBtn'){
+          state.currentStep = cfg.steps.length; save(); finishGame();
+        }
+        if(e.target.id==='resetBtn'){
+          if(confirm('Really reset everything for this event key?')){
+            hardReset();
+            document.body.removeChild(bd);
+          }
+        }
+        if(e.target.id==='kioskBtn'){
+          document.querySelector('header').classList.toggle('hidden');
+        }
+      });
+    }
+
+    // =============== Events ===============
+    els.submit.addEventListener('click', handleSubmit);
+    els.code.addEventListener('keydown', e=>{ if(e.key==='Enter') handleSubmit(); });
+    els.startBtn.addEventListener('click', startGame);
+    els.loadBtn.addEventListener('click', resumeIfAvailable);
+    els.playAgainBtn.addEventListener('click', hardReset);
+    els.adminBtn.addEventListener('click', openAdmin);
+
+    // Prefill defaults
+    els.duration.value = cfg.defaultMinutes;
+    els.eventKey.value = cfg.eventKeyDefault;
+
+    // Keyboard aid: press "/" to focus input, "?" to open admin pin
+    addEventListener('keydown', e=>{
+      if(e.key === '/'){ e.preventDefault(); els.code.focus(); }
+      if(e.key === '?' || (e.shiftKey && e.key.toLowerCase()==='a')) openAdmin();
+    });
+
+    // Accessible hint
+    els.startMsg.textContent = 'Press "/" to focus the answer box. Admin panel: Shift+A.';
+
+  </script>
+</body>
+</html>
