@@ -172,6 +172,7 @@
       </div>
 
       <div id="stepTitle" class="center" style="color:#a9b6d4; margin-top:2px;"></div>
+      <div id="stepDescription" class="center" style="color:#94a3b8; margin-top:6px; font-size:14px;"></div>
 
       <div class="input-row">
         <input id="codeInput" class="code-input" placeholder="Enter code…" autocomplete="off" />
@@ -200,16 +201,32 @@
     "showStepTitlesWhenDone": true,
     "rateLimit": { "limit": 3, "cooldownSec": 3 },
     "steps": [
-      { "title": "Step 1", "codeHashes": ["0b3a8e6318df030d9c6c0e0a4d9fd771c2b0e3e7f4a186f0b0e6d3e1b84a4b45"] },
-      { "title": "Step 2", "codeHashes": ["5a8a7b3f5d0c0901b7a0b2d090c4d5e5fb7f65800c76d9aa9d2ea7f96333b2ce"] },
-      { "title": "Step 3", "codeHashes": ["f1e2d3c4b5a697887766554433221100ffeeddccbbaa99887766554433221100"] },
-      { "title": "Step 4", "codeHashes": ["f6c3a25f9b246852a1f3d8b2c0e4d5a6c7b8a9e0d1c2b3a4f5e6d7c8b9a0f1e2"] },
-      { "title": "Step 5", "codeHashes": ["2c26b46b68ffc68ff99b453c1d3041341342d7065f49f8e0f1e6d4c3b2a1f0ef"] },
-      { "title": "Step 6", "codeHashes": ["4f7b3b9c5a1d2e3f4a5b6c7d8e9f00112233445566778899aabbccddeeff0011"] },
-      { "title": "Step 7", "codeHashes": ["d4735e3a265e16eee03f59718b9b5d03d6f91f6b1c1d1e1e1f1f1f1f1f1f1f1f"] },
-      { "title": "Step 8", "codeHashes": ["3f786850e387550fdab836ed7e6dc881de23001b"] },
-      { "title": "Step 9", "codeHashes": ["7c222fb2927d828af22f592134e8932480637c0d"] },
-      { "title": "Final Step", "codeHashes": ["2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"] }
+      
+{
+  "title": "Step 1",
+  "description": "Spot the Phishing.",
+  "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]
+},
+    {
+  "title": "Step 2",
+  "description": "Project Management Challenge.",
+  "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]
+},
+    {
+  "title": "Step 3",
+  "description": "EUC Challenge.",
+  "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]
+},
+    {
+  "title": "Step 4 - Phishing for clues",
+  "description": "Here is a description of Phishing for clues.",
+  "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]
+},
+    {
+  "title": "Final Step",
+  "description": "Here is a description for the final step.",
+  "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]
+}
     ]
   }
   </script>
@@ -366,21 +383,28 @@
     setMeta();
 
     // Build dots
-    function renderDots(){
-      els.dots.innerHTML = '';
-      for(let i=0;i<cfg.steps.length;i++){
-        const d = document.createElement('div');
-        d.className = 'dot';
-        d.textContent = (i+1);
-        if(i < state.currentStep) d.classList.add('done');
-        else if(i === state.currentStep) d.classList.add('active');
-        els.dots.appendChild(d);
-      }
-      const pct = (state.currentStep / cfg.steps.length) * 100;
-      els.barFill.style.width = `${pct}%`;
-      const title = cfg.steps[state.currentStep]?.title || '';
-      els.stepTitle.textContent = title ? `Current: ${title}` : '';
-    }
+   function renderDots(){
+  els.dots.innerHTML = '';
+  for(let i=0;i<cfg.steps.length;i++){
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.textContent = (i+1);
+    if(i < state.currentStep) d.classList.add('done');
+    else if(i === state.currentStep) d.classList.add('active');
+    els.dots.appendChild(d);
+  }
+  const pct = (state.currentStep / cfg.steps.length) * 100;
+  els.barFill.style.width = `${pct}%`;
+
+  // Update step title
+  const step = cfg.steps[state.currentStep];
+  const title = step?.title || '';
+  els.stepTitle.textContent = title ? `Current: ${title}` : '';
+
+  // NEW — update step description
+  const desc = step?.description || '';
+  els.stepDescription.textContent = desc;
+}
 
     // Local storage
     function storageKey(){ return `escape:${state.eventKey}`; }
