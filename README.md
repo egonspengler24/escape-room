@@ -1,10 +1,31 @@
 # escape-room
-ENWL Apprentice Selection Escape Room Challenge
+## ENWL Apprentice Selection Escape Room Challenge
 
- How to Run the Assessment
+## Description:
+This project runs an "Escape Room" challenge which gives a physical team of potential apprentices the ability to complete a number of tasks, each of which generates
+a code which if input correctly allows them to move onto the next step.
+A countdown timer is on-screen which shows the time remaining
+A visual set of steps along with descriptions and images is provided.
+
+## Technical Notes:
+* A single HTML file (index.html) contains the javascript code as well as the configuration
+* Another file (authoring.html) allows the generation of hashed codes which prevent a clever user looking in the index.html source code to discover the codes.
+
+The congiguration steps within the index.html file allow the various steps to be configured.
+The system supports a user configurable time as well as multiple steps.
+
+### Main Config:
+'''
+
+'''
+
+### Task Config:
+'''
+
+'''
 
 
-Prep:
+## Prep:
 
 Decide your ten challenges and their codes (keep them short & memorable: e.g., BRIDGE-42).
 Use Authoring Tool to generate hashes; paste them back into index.html.
