@@ -17,11 +17,11 @@ The system supports a user configurable time as well as multiple steps.
 ### Main Config:
 The main config is shown in the snippet below, and behaves as follows
 Title - Detault title 
-adminPin - Pin number to be input when selecting the "Admin" function (which opens up Admin configuration options)
-defaultMinutes - The default number of minutes the team will have to escape
-eventKeyDefault - The default key used to record progress in case the page is refreshed and needs to be resumed
-showStepTitlesWhenDone - true / false - Not currently used by controls if the previous steps can be used in dialogs once the finish is reached
-rateLimit - Controls the number of wrong answers allowed before a "cooldown" period is needed. In the case of the example 3 wrong answers then waits for 3 seconds before allowing a retry
+adminPin - Pin number to be input when selecting the "Admin" function (which opens up Admin configuration options)  
+defaultMinutes - The default number of minutes the team will have to escape  
+eventKeyDefault - The default key used to record progress in case the page is refreshed and needs to be resumed  
+showStepTitlesWhenDone - true / false - Not currently used by controls if the previous steps can be used in dialogs once the finish is reached  
+rateLimit - Controls the number of wrong answers allowed before a "cooldown" period is needed. In the case of the example 3 wrong answers then waits for 3 seconds before allowing a retry  
 ```
 {
     "title": "Apprentice Escape Room",
@@ -35,13 +35,13 @@ rateLimit - Controls the number of wrong answers allowed before a "cooldown" per
 
 ### Task Config:
 The task config is shown in the snippet below, and behaves as follows
-Title - Displayed title for the step
-image - the image file and path (relative) for the step image
-imageAlt - the alt text for the image
-descriptionMd - description (allows markdown as per the example)
-description - Plan text description
-descriptionHTML - description also allwing HTML links
-codeHashes - A hashed value representing the code (which you can generate using authoring.html)
+Title - Displayed title for the step  
+image - the image file and path (relative) for the step image  
+imageAlt - the alt text for the image  
+descriptionMd - description (allows markdown as per the example)  
+description - Plan text description  
+descriptionHTML - description also allwing HTML links  
+codeHashes - A hashed value representing the code (which you can generate using authoring.html)  
 
 ```
 "title": "Cyber Caterpillar 1",
