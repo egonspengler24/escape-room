@@ -51,7 +51,15 @@ codeHashes - A hashed value representing the code (which you can generate using 
       "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]  
 },
 ```
-
+### Admin Panel 
+A user can select the Cog symbol at the top RHS and input the admin code (specified in the config) to gain access to the admin panel. 
+Here they have the following options
+Adjust time (seconds) - This adds or removes (specify a -nus character) the specified number of seconds  
+Skip to step (1..x) - This allows the admin to put in the number of a step. Press the Skip button to jump to that step  
++Time / -Time - Clicking these buttons add or remove time in 30 second increments  
+End Now - Immediatley move to the end screen  
+Toggle Kiosk UI - Remove the Admin panel link and the top menu text for a cleaner look  
+Full Reset - Reset everything, including any existing sessions which would be able to be resumed
 
 ## Prep:
 
