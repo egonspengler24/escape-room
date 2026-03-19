@@ -612,11 +612,18 @@ if (step.image) {
         }
       } else {
         state.wrongStreak += 1;
+      
+        // --- ADD 20 SECOND PENALTY ---
+        const penalty = 20 * 1000;
+        state.deadline -= penalty;  
         save();
+        startTimer(); // refresh countdown display
+      
         els.msg.className = 'msg err';
-        els.msg.textContent = 'Incorrect code. Try again.';
+        els.msg.textContent = 'Incorrect code. -20 seconds penalty!';
         shake(els.code);
         await beep.err();
+      
         await cooldownIfNeeded();
       }
     }
@@ -789,9 +796,13 @@ if (step.image) {
     els.eventKey.value = cfg.eventKeyDefault;
 
     // Keyboard aid: press "/" to focus input, "?" to open admin pin
-    addEventListener('keydown', e=>{
-      if(e.key === '/'){ e.preventDefault(); els.code.focus(); }
-      if(e.key === '?' || (e.shiftKey && e.key.toLowerCase()==='a')) openAdmin();
+   addEventListener('keydown', e=>{
+      // Keep only "/" to focus the answer input
+      if(e.key === '/'){
+        e.preventDefault();
+        els.code.focus();
+      }
+      // Removed Shift+A and "?" shortcuts entirely
     });
 
     // Accessible hint
