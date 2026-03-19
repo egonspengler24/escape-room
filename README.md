@@ -22,7 +22,7 @@ defaultMinutes - The default number of minutes the team will have to escape
 eventKeyDefault - The default key used to record progress in case the page is refreshed and needs to be resumed
 showStepTitlesWhenDone - true / false - Not currently used by controls if the previous steps can be used in dialogs once the finish is reached
 rateLimit - Controls the number of wrong answers allowed before a "cooldown" period is needed. In the case of the example 3 wrong answers then waits for 3 seconds before allowing a retry
-'''
+```
 {
     "title": "Apprentice Escape Room",
     "adminPin": "admin",
@@ -31,7 +31,7 @@ rateLimit - Controls the number of wrong answers allowed before a "cooldown" per
     "showStepTitlesWhenDone": true,
     "rateLimit": { "limit": 3, "cooldownSec": 3 },
     "steps": [
-'''
+```
 
 ### Task Config:
 The task config is shown in the snippet below, and behaves as follows
@@ -43,14 +43,14 @@ description - Plan text description
 descriptionHTML - description also allwing HTML links
 codeHashes - A hashed value representing the code (which you can generate using authoring.html)
 
-'''
+```
 "title": "Cyber Caterpillar 1",
       "image": "images/stage1.png",
       "imageAlt": "A caterpillar preventing a cyber attach",
       "descriptionMd": "**Welcome!** Complete the Cyber task to find the codes.\n\n- Note the *order*\n- Combine to reveal the code\n\nTip: Look for the best people in your team to help 👀",
       "codeHashes": ["3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"]  
 },
-'''
+```
 
 
 ## Prep:
