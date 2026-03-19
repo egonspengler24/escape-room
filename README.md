@@ -11,7 +11,7 @@ A visual set of steps along with descriptions and images is provided.
 * A single HTML file (index.html) contains the javascript code as well as the configuration
 * Another file (authoring.html) allows the generation of hashed codes which prevent a clever user looking in the index.html source code to discover the codes.
 
-The congiguration steps within the index.html file allow the various steps to be configured.
+The configuration steps within the index.html file allow the various steps to be configured.
 The system supports a user configurable time as well as multiple steps.
 
 ### Main Config:
