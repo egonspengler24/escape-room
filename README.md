@@ -15,7 +15,7 @@ The congiguration steps within the index.html file allow the various steps to be
 The system supports a user configurable time as well as multiple steps.
 
 ### Main Config:
-The main config is shown in the snippet below, and behaves as follows
+The main config is shown in the snippet below, and behaves as follows  
 Title - Detault title 
 adminPin - Pin number to be input when selecting the "Admin" function (which opens up Admin configuration options)  
 defaultMinutes - The default number of minutes the team will have to escape  
@@ -34,7 +34,7 @@ rateLimit - Controls the number of wrong answers allowed before a "cooldown" per
 ```
 
 ### Task Config:
-The task config is shown in the snippet below, and behaves as follows
+The task config is shown in the snippet below, and behaves as follows  
 Title - Displayed title for the step  
 image - the image file and path (relative) for the step image  
 imageAlt - the alt text for the image  
@@ -53,7 +53,7 @@ codeHashes - A hashed value representing the code (which you can generate using 
 ```
 ### Admin Panel 
 A user can select the Cog symbol at the top RHS and input the admin code (specified in the config) to gain access to the admin panel. 
-Here they have the following options
+Here they have the following options  
 Adjust time (seconds) - This adds or removes (specify a -nus character) the specified number of seconds  
 Skip to step (1..x) - This allows the admin to put in the number of a step. Press the Skip button to jump to that step  
 +Time / -Time - Clicking these buttons add or remove time in 30 second increments  
@@ -63,24 +63,18 @@ Full Reset - Reset everything, including any existing sessions which would be ab
 
 ## Prep:
 
-Decide your ten challenges and their codes (keep them short & memorable: e.g., BRIDGE-42).
-Use Authoring Tool to generate hashes; paste them back into index.html.
-Print the physical challenge sheets (each reveals a code).
-Set your GitHub Pages link on the room PC (or a tablet) and put it in kiosk mode via Admin.
+Decide your ten challenges and their codes (keep them short & memorable: e.g., BRIDGE-42).  
+Use Authoring Tool to generate hashes; paste them back into index.html.  
+Print the physical challenge sheets (each reveals a code).  
+Set your GitHub Pages link on the room PC (or a tablet) and put it in kiosk mode via Admin.  
 
+## On the day:
+Group of 10 apprentices enters.  
+Start the session, set team name & duration, press Start.  
+They solve each physical task → input the code → progress unlocks.  
+If you need to intervene (rare): ⚙️ admin → skip/add time or take necessary actions  
+Finish triggers confetti & shows time remaining.  
 
-
-On the day:
-
-Group of 10 apprentices enters.
-Start the session, set team name & duration, press Start.
-They solve each physical task → input the code → progress unlocks.
-If you need to intervene (rare): ⚙️ admin → skip/add time.
-Finish triggers confetti & shows time remaining.
-
-
-
-Between sessions:
-
-⚙️ admin → Full Reset.
-(Optional) Change the Event Key per team if you want to resume a specific run later.
+### Between sessions:  
+⚙️ admin → Full Reset.  
+(Optional) Change the Event Key per team if you want to resume a specific run later.  
